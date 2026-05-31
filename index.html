@@ -301,10 +301,19 @@
     }
 
     /* ─── Split Layout (Preview mode) ─── */
-    .split-container {
-      flex: 1;
+    .file-tree {
       display: none;
-      flex-direction: row;
+      width: 20%;
+      min-width: 140px;
+      max-width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .file-tree.visible { display: flex; }
+    .file-tree-header {
       overflow: hidden;
       min-height: 0;
     }
@@ -350,19 +359,6 @@
     .tree-item.tree-file { color: var(--fg2); }
     .tree-item.tree-file:hover { color: var(--fg); }
     .tree-item.active { background: rgba(59,130,246,0.15); color: var(--accent); }
-    .preview-pane {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      min-width: 0;
-    }
-    .preview-pane iframe {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: white;
-    }
     .text-viewer {
       display: none;
       flex: 1;
@@ -378,7 +374,6 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
-    .split-container:not(.active) + .preview-pane iframe { display: none; }
 
     /* ─── Error Overlay ─── */
     .error-overlay {
@@ -533,14 +528,14 @@
         <button class="tb-btn go-btn" id="goBtn" title="Go">➤</button>
         <div class="page-indicator" id="pageIndicator">:port</div>
       </div>
-      <div class="split-container" id="splitContainer">
+      <div style="position:relative;flex:1;display:flex;flex-direction:row;min-height:0">
         <div class="file-tree" id="fileTree">
           <div class="file-tree-header">Workspace</div>
           <div class="file-tree-content" id="fileTreeContent">
             <div class="tree-item" style="color:var(--fg2);font-size:12px;padding:10px">Loading...</div>
           </div>
         </div>
-        <div class="preview-pane">
+        <div style="flex:1;display:flex;flex-direction:column;position:relative;min-width:0">
           <iframe id="serviceFrame" sandbox="allow-scripts allow-forms allow-same-origin allow-popups" loading="lazy"></iframe>
           <div class="text-viewer" id="textViewer"><pre id="textContent"></pre></div>
           <div class="error-overlay" id="errorOverlay">
@@ -575,7 +570,6 @@
     const homeFromErrorBtn = document.getElementById('homeFromErrorBtn');
     const urlBar = document.getElementById('urlBar');
     const goBtn = document.getElementById('goBtn');
-    const splitContainer = document.getElementById('splitContainer');
     const fileTreeContent = document.getElementById('fileTreeContent');
     const textViewer = document.getElementById('textViewer');
     const textContent = document.getElementById('textContent');
@@ -607,7 +601,7 @@
       var nav = document.querySelector('.nav-bar');
       if (label === 'Preview') {
         nav.classList.add('url-mode');
-        splitContainer.style.display = 'flex';
+        document.getElementById('fileTree').classList.add('visible');
         frame.style.display = '';
         textViewer.classList.remove('active');
         loadDir(WORKSPACE);
@@ -615,7 +609,7 @@
         urlBar.select();
       } else {
         nav.classList.remove('url-mode');
-        splitContainer.style.display = 'none';
+        document.getElementById('fileTree').classList.remove('visible');
       }
     }
 
