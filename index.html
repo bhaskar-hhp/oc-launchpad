@@ -249,6 +249,18 @@
       flex-shrink: 0;
       max-width: 90px;
     }
+    .iframe-view .nav-bar .url-bar,
+    .iframe-view .nav-bar .go-btn {
+      display: none;
+    }
+    .iframe-view .nav-bar.url-mode .page-title,
+    .iframe-view .nav-bar.url-mode .page-indicator {
+      display: none;
+    }
+    .iframe-view .nav-bar.url-mode .url-bar,
+    .iframe-view .nav-bar.url-mode .go-btn {
+      display: block;
+    }
     .iframe-view .nav-bar .url-bar {
       flex: 1;
       min-width: 0;
@@ -269,6 +281,9 @@
       width: 30px;
       height: 28px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .iframe-view .nav-bar .page-indicator {
       font-family: var(--mono);
@@ -494,6 +509,15 @@
       loadAttempts = 0;
       frame.src = url;
       closeDrawer();
+      // Show URL bar only for Preview mode
+      var nav = document.querySelector('.nav-bar');
+      if (label === 'Preview') {
+        nav.classList.add('url-mode');
+        urlBar.focus();
+        urlBar.select();
+      } else {
+        nav.classList.remove('url-mode');
+      }
     }
 
     function handleFrameError() {
@@ -606,8 +630,10 @@
       navigateTo(urlBar.value);
     });
 
-    // Also update URL bar when iframe loads (for same-origin pages)
+    // Sync URL bar when iframe loads (Preview mode only)
     frame.addEventListener('load', () => {
+      var nav = document.querySelector('.nav-bar');
+      if (!nav.classList.contains('url-mode')) return;
       try {
         if (frame.contentWindow && frame.contentWindow.location.href) {
           urlBar.value = frame.contentWindow.location.href;
