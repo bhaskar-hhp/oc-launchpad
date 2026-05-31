@@ -246,6 +246,29 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex-shrink: 0;
+      max-width: 90px;
+    }
+    .iframe-view .nav-bar .url-bar {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      outline: none;
+    }
+    .iframe-view .nav-bar .url-bar:focus {
+      border-color: var(--accent);
+    }
+    .iframe-view .nav-bar .go-btn {
+      font-size: 14px;
+      width: 30px;
+      height: 28px;
+      flex-shrink: 0;
     }
     .iframe-view .nav-bar .page-indicator {
       font-family: var(--mono);
@@ -410,6 +433,8 @@
     <div class="iframe-view" id="iframeView">
       <div class="nav-bar">
         <div class="page-title" id="pageTitle">Service</div>
+        <input class="url-bar" id="urlBar" type="text" placeholder="Enter URL or file path..." spellcheck="false">
+        <button class="tb-btn go-btn" id="goBtn" title="Go">➤</button>
         <div class="page-indicator" id="pageIndicator">:port</div>
       </div>
       <div style="position:relative;flex:1;display:flex;flex-direction:column">
@@ -443,6 +468,8 @@
     const refreshBtn = document.getElementById('refreshBtn');
     const retryBtn = document.getElementById('retryBtn');
     const homeFromErrorBtn = document.getElementById('homeFromErrorBtn');
+    const urlBar = document.getElementById('urlBar');
+    const goBtn = document.getElementById('goBtn');
 
     let currentUrl = '';
     let loadAttempts = 0;
@@ -459,6 +486,7 @@
       currentUrl = url;
       pageTitle.textContent = label;
       pageIndicator.textContent = port;
+      urlBar.value = url;
       homeView.style.display = 'none';
       iframeView.classList.add('active');
       iframeView.style.display = 'flex';
@@ -550,6 +578,41 @@
     // Keyboard: Escape closes drawer
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeDrawer();
+    });
+
+    // ── URL bar navigation ──
+    function navigateTo(url) {
+      url = url.trim();
+      if (!url) return;
+      // Auto-prepend http:// if missing
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'http://' + url;
+      }
+      currentUrl = url;
+      pageTitle.textContent = 'Custom';
+      pageIndicator.textContent = '';
+      urlBar.value = url;
+      errorOverlay.classList.remove('active');
+      frame.src = url;
+    }
+
+    urlBar.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        navigateTo(urlBar.value);
+      }
+    });
+
+    goBtn.addEventListener('click', () => {
+      navigateTo(urlBar.value);
+    });
+
+    // Also update URL bar when iframe loads (for same-origin pages)
+    frame.addEventListener('load', () => {
+      try {
+        if (frame.contentWindow && frame.contentWindow.location.href) {
+          urlBar.value = frame.contentWindow.location.href;
+        }
+      } catch(e) { /* cross-origin */ }
     });
 
     // Highlight active item in drawer
