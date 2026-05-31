@@ -499,6 +499,7 @@
         const url = card.dataset.url;
         const label = card.dataset.label;
         const port = card.dataset.port;
+        if (port === 'ext') { window.open(url, '_blank'); closeDrawer(); return; }
         loadService(url, label, port);
       });
     });
@@ -509,6 +510,7 @@
         const url = item.dataset.url;
         const label = item.dataset.label;
         const port = item.dataset.port;
+        if (port === 'ext') { window.open(url, '_blank'); closeDrawer(); return; }
         loadService(url, label, port);
       });
     });
