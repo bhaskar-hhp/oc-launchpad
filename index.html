@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>OC Launchpad</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a;
+      --bg2: #1e293b;
+      --bg3: #334155;
+      --fg: #e2e8f0;
+      --fg2: #94a3b8;
+      --accent: #3b82f6;
+      --accent2: #2563eb;
+      --border: #334155;
+      --radius: 12px;
+      --font: system-ui, -apple-system, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --topbar-h: 52px;
+    }
+    html { font-size: 15px; height: 100%; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Top Bar ─── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      z-index: 100;
+      gap: 8px;
+    }
+    .topbar .spacer { flex: 1; }
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--fg2);
+      margin-right: auto;
+    }
+    .topbar-title span { color: var(--accent); }
+    .tb-btn {
+      background: none;
+      border: none;
+      color: var(--fg2);
+      font-size: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .tb-btn:hover { background: var(--bg3); color: var(--fg); }
+    .tb-btn:active { background: var(--border); }
+    .hamburger { font-size: 22px; }
+
+    /* ─── Side Drawer ─── */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 280px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      z-index: 201;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      padding-top: calc(var(--topbar-h) + 8px);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 8px 16px 12px;
+      font-size: 12px;
+      color: var(--fg2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+    }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      color: var(--fg);
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-family: var(--font);
+      text-align: left;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    .drawer-item:hover { background: var(--bg3); }
+    .drawer-item .icon { font-size: 18px; width: 28px; text-align: center; }
+    .drawer-item .meta {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--fg2);
+    }
+    .drawer-item.active {
+      background: rgba(59,130,246,0.12);
+      border-right: 3px solid var(--accent);
+    }
+
+    /* ─── Main Content ─── */
+    .main {
+      flex: 1;
+      margin-top: var(--topbar-h);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── Home Grid ─── */
+    .container {
+      max-width: 520px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .header h1 span { color: var(--accent); }
+    .header p {
+      color: var(--fg2);
+      font-size: 14px;
+    }
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      color: var(--fg);
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .card:hover {
+      background: var(--bg3);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .card:active { transform: translateY(0); }
+    .card-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .card-icon.blue { background: #1e3a5f; }
+    .card-icon.green { background: #1a3a2a; }
+    .card-icon.purple { background: #2a1a3a; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+    .card-desc { font-size: 12px; color: var(--fg2); }
+    .card-meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: rgba(59,130,246,0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--fg2);
+    }
+    .status-item { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot.on { background: #22c55e; }
+    .dot.off { background: #64748b; }
+
+    /* ─── Iframe View ─── */
+    .iframe-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+    .iframe-view.active { display: flex; }
+    .iframe-view .nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .iframe-view .nav-bar .page-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .iframe-view .nav-bar .page-indicator {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: rgba(59,130,246,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .iframe-view iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+    }
+
+    /* ─── Error Overlay ─── */
+    .error-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .error-overlay.active { display: flex; }
+    .error-overlay .err-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+    .error-overlay h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .error-overlay p {
+      color: var(--fg2);
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .error-overlay .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .error-overlay .actions button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--fg);
+      font-size: 14px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.15s;
+    }
+    .error-overlay .actions button:hover { background: var(--bg3); }
+    .error-overlay .actions button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .error-overlay .actions button.primary:hover { background: var(--accent2); }
+
+    /* ─── responsive ─── */
+    @media (max-width: 480px) {
+      .container { padding: 16px 12px; padding-top: 24px; }
+      .card { padding: 14px 16px; }
+      .header h1 { font-size: 24px; }
+      .drawer { width: 260px; }
+    }
+    @media (min-width: 768px) {
+      .drawer { width: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Top Bar ─── -->
+  <div class="topbar">
+    <button class="tb-btn hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
+    <div class="topbar-title"><span>OC</span> Launchpad</div>
+    <div class="spacer"></div>
+    <button class="tb-btn" id="homeBtn" aria-label="Home" title="Home">⌂</button>
+    <button class="tb-btn" id="refreshBtn" aria-label="Refresh" title="Refresh">↻</button>
+  </div>
+
+  <!-- ─── Side Drawer ─── -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">Services</div>
+    <button class="drawer-item" data-url="http://100.79.46.97:4096" data-label="API Server" data-port=":4096">
+      <span class="icon">⚙️</span> API Server <span class="meta">:4096</span>
+    </button>
+    <button class="drawer-item" data-url="http://100.79.46.97:8080" data-label="Web Terminal" data-port=":8080">
+      <span class="icon">💻</span> Web Terminal <span class="meta">:8080</span>
+    </button>
+    <button class="drawer-item" data-url="http://100.79.46.97:8081" data-label="Dashboard" data-port=":8081">
+      <span class="icon">📊</span> Dashboard <span class="meta">:8081</span>
+    </button>
+    <button class="drawer-item" data-url="https://github.com/codespaces/new?repo=bhaskar-hhp/wsl-projects" data-label="Codespaces" data-port="ext">
+      <span class="icon">☁️</span> Codespaces <span class="meta">gh</span>
+    </button>
+  </div>
+
+  <!-- ─── Main ─── -->
+  <div class="main" id="main">
+
+    <!-- Home Grid -->
+    <div id="homeView">
+      <div class="container">
+        <div class="header">
+          <h1>🚀 <span>OC</span> Launchpad</h1>
+          <p>Select a service to get started</p>
+        </div>
+        <div class="card" data-url="http://100.79.46.97:4096" data-label="API Server" data-port=":4096">
+          <div class="card-icon blue">⚙️</div>
+          <div class="card-body">
+            <div class="card-title">API Server</div>
+            <div class="card-desc">opencode headless API</div>
+          </div>
+          <div class="card-meta">:4096</div>
+        </div>
+        <div class="card" data-url="http://100.79.46.97:8080" data-label="Web Terminal" data-port=":8080">
+          <div class="card-icon green">💻</div>
+          <div class="card-body">
+            <div class="card-title">Web Terminal</div>
+            <div class="card-desc">Full opencode CLI in your browser</div>
+          </div>
+          <div class="card-meta">:8080</div>
+        </div>
+        <div class="card" data-url="http://100.79.46.97:8081" data-label="Dashboard" data-port=":8081">
+          <div class="card-icon purple">📊</div>
+          <div class="card-body">
+            <div class="card-title">Dashboard</div>
+            <div class="card-desc">Chat, tasks, files, sessions, GitHub</div>
+          </div>
+          <div class="card-meta">:8081</div>
+        </div>
+        <div class="card" data-url="https://github.com/codespaces/new?repo=bhaskar-hhp/wsl-projects" data-label="Codespaces" data-port="ext">
+          <div class="card-icon" style="background:#1a2a3a;">☁️</div>
+          <div class="card-body">
+            <div class="card-title">Codespaces</div>
+            <div class="card-desc">Open wsl-projects in GitHub Codespaces</div>
+          </div>
+          <div class="card-meta">gh</div>
+        </div>
+        <div class="status-bar">
+          <span class="status-item"><span class="dot on"></span> Tailscale connected</span>
+          <span class="status-item"><span class="dot on"></span> 100.79.46.97</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Iframe View -->
+    <div class="iframe-view" id="iframeView">
+      <div class="nav-bar">
+        <div class="page-title" id="pageTitle">Service</div>
+        <div class="page-indicator" id="pageIndicator">:port</div>
+      </div>
+      <div style="position:relative;flex:1;display:flex;flex-direction:column">
+        <iframe id="serviceFrame" sandbox="allow-scripts allow-forms allow-same-origin allow-popups" loading="lazy"></iframe>
+        <div class="error-overlay" id="errorOverlay">
+          <div class="err-icon">⚠️</div>
+          <h3>Connection Lost</h3>
+          <p id="errorMsg">Could not reach the service. It may be offline.</p>
+          <div class="actions">
+            <button class="primary" id="retryBtn">↻ Retry</button>
+            <button id="homeFromErrorBtn">⌂ Go Home</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const homeView = document.getElementById('homeView');
+    const iframeView = document.getElementById('iframeView');
+    const frame = document.getElementById('serviceFrame');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const errorOverlay = document.getElementById('errorOverlay');
+    const errorMsg = document.getElementById('errorMsg');
+    const drawer = document.getElementById('drawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const homeFromErrorBtn = document.getElementById('homeFromErrorBtn');
+
+    let currentUrl = '';
+    let loadAttempts = 0;
+
+    function showHome() {
+      homeView.style.display = '';
+      iframeView.classList.remove('active');
+      iframeView.style.display = '';
+      errorOverlay.classList.remove('active');
+      closeDrawer();
+    }
+
+    function loadService(url, label, port) {
+      currentUrl = url;
+      pageTitle.textContent = label;
+      pageIndicator.textContent = port;
+      homeView.style.display = 'none';
+      iframeView.classList.add('active');
+      iframeView.style.display = 'flex';
+      errorOverlay.classList.remove('active');
+      loadAttempts = 0;
+      frame.src = url;
+      closeDrawer();
+    }
+
+    function handleFrameError() {
+      loadAttempts++;
+      errorMsg.textContent = 'Could not reach ' + pageTitle.textContent + '. It may be offline or disconnected.';
+      errorOverlay.classList.add('active');
+    }
+
+    function retry() {
+      errorOverlay.classList.remove('active');
+      if (currentUrl) {
+        frame.src = currentUrl;
+      }
+    }
+
+    function openDrawer() {
+      drawer.classList.add('open');
+      drawerOverlay.classList.add('open');
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      drawerOverlay.classList.remove('open');
+    }
+
+    // ── Events ──
+
+    // Home card clicks
+    document.querySelectorAll('.card[data-url]').forEach(card => {
+      card.addEventListener('click', () => {
+        const url = card.dataset.url;
+        const label = card.dataset.label;
+        const port = card.dataset.port;
+        loadService(url, label, port);
+      });
+    });
+
+    // Drawer item clicks
+    document.querySelectorAll('.drawer-item[data-url]').forEach(item => {
+      item.addEventListener('click', () => {
+        const url = item.dataset.url;
+        const label = item.dataset.label;
+        const port = item.dataset.port;
+        loadService(url, label, port);
+      });
+    });
+
+    // Top bar buttons
+    hamburgerBtn.addEventListener('click', openDrawer);
+    drawerOverlay.addEventListener('click', closeDrawer);
+    homeBtn.addEventListener('click', showHome);
+    refreshBtn.addEventListener('click', () => {
+      if (iframeView.classList.contains('active') && currentUrl) {
+        retry();
+      }
+    });
+    retryBtn.addEventListener('click', retry);
+    homeFromErrorBtn.addEventListener('click', showHome);
+
+    // Iframe error detection
+    frame.addEventListener('error', handleFrameError);
+
+    // Poll for iframe load state (more reliable than event listeners)
+    let pollTimer = null;
+    frame.addEventListener('load', () => {
+      errorOverlay.classList.remove('active');
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        try {
+          if (frame.contentDocument && frame.contentDocument.body) {
+            if (frame.contentDocument.body.innerHTML.trim() === '') return;
+          }
+        } catch (e) {
+          handleFrameError();
+          if (pollTimer) clearInterval(pollTimer);
+        }
+      }, 5000);
+    });
+
+    // Keyboard: Escape closes drawer
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+
+    // Highlight active item in drawer
+    function updateActiveDrawer(label) {
+      document.querySelectorAll('.drawer-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.label === label);
+      });
+    }
+
+    // Override loadService to also update drawer highlight
+    const origLoad = loadService;
+    loadService = function(url, label, port) {
+      updateActiveDrawer(label);
+      origLoad(url, label, port);
+    };
+  </script>
+
+</body>
+</html>
