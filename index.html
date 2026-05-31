@@ -608,16 +608,20 @@
     function navigateTo(url) {
       url = url.trim();
       if (!url) return;
-      // Auto-prepend http:// if missing
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'http://' + url;
       }
-      currentUrl = url;
-      pageTitle.textContent = 'Custom';
-      pageIndicator.textContent = '';
-      urlBar.value = url;
-      errorOverlay.classList.remove('active');
-      frame.src = url;
+      // Load local OC files in iframe, external sites in new tab
+      if (url.indexOf('100.79.46.97:8081') !== -1 || url.indexOf('localhost:8081') !== -1 || url.indexOf('100.79.46.97:8080') !== -1 || url.indexOf('localhost:8080') !== -1) {
+        currentUrl = url;
+        pageTitle.textContent = 'Preview';
+        pageIndicator.textContent = 'oc';
+        urlBar.value = url;
+        errorOverlay.classList.remove('active');
+        frame.src = url;
+      } else {
+        window.open(url, '_blank');
+      }
     }
 
     urlBar.addEventListener('keydown', (e) => {
