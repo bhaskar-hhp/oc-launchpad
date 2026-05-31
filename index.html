@@ -314,20 +314,6 @@
     }
     .file-tree.visible { display: flex; }
     .file-tree-header {
-      overflow: hidden;
-      min-height: 0;
-    }
-    .file-tree {
-      width: 20%;
-      min-width: 140px;
-      max-width: 260px;
-      background: var(--bg);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .file-tree-header {
       padding: 8px 10px;
       font-size: 11px;
       color: var(--fg2);
@@ -336,7 +322,10 @@
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
       background: var(--bg2);
+      overflow: hidden;
+      min-height: 0;
     }
+
     .file-tree-content {
       flex: 1;
       overflow-y: auto;
