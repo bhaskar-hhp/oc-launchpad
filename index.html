@@ -72,6 +72,7 @@
     .tb-btn:hover { background: var(--bg3); color: var(--fg); }
     .tb-btn:active { background: var(--border); }
     .hamburger { font-size: 22px; }
+    .tb-btn.active-term { color: var(--accent); background: rgba(59,130,246,0.12); }
 
     /* ─── Side Drawer ─── */
     .drawer-overlay {
@@ -141,7 +142,15 @@
     .main {
       flex: 1;
       margin-top: var(--topbar-h);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+    #homeView {
       overflow-y: auto;
+      flex: 1;
+      min-height: 0;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -227,7 +236,8 @@
     .iframe-view {
       display: none;
       flex-direction: column;
-      height: 100%;
+      flex: 1;
+      min-height: 0;
     }
     .iframe-view.active { display: flex; }
     .iframe-view .nav-bar {
@@ -429,6 +439,53 @@
     }
     .error-overlay .actions button.primary:hover { background: var(--accent2); }
 
+    /* ─── Terminal Panel ─── */
+    .term-panel {
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 200px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .term-panel.open { display: flex; }
+    .term-panel .term-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      font-size: 12px;
+      color: var(--fg2);
+    }
+    .term-panel .term-bar .term-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .term-panel .term-bar .term-close {
+      background: none;
+      border: none;
+      color: var(--fg2);
+      font-size: 16px;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .term-panel .term-bar .term-close:hover { background: var(--bg3); color: var(--fg); }
+    .term-panel iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #0f172a;
+    }
+
     /* ─── responsive ─── */
     @media (max-width: 480px) {
       .container { padding: 16px 12px; padding-top: 24px; }
@@ -450,6 +507,7 @@
     <div class="spacer"></div>
     <button class="tb-btn" id="homeBtn" aria-label="Home" title="Home">⌂</button>
     <button class="tb-btn" id="refreshBtn" aria-label="Refresh" title="Refresh">↻</button>
+    <button class="tb-btn" id="termToggleBtn" aria-label="Terminal" title="Toggle terminal">⬚</button>
   </div>
 
   <!-- ─── Side Drawer ─── -->
@@ -552,6 +610,15 @@
       </div>
     </div>
 
+    <!-- ─── Terminal Panel ─── -->
+    <div class="term-panel" id="termPanel">
+      <div class="term-bar">
+        <span class="term-label">💻 Terminal <span style="color:var(--fg2)">:8080</span></span>
+        <button class="term-close" id="termCloseBtn" title="Close terminal">✕</button>
+      </div>
+      <iframe id="termFrame" loading="lazy"></iframe>
+    </div>
+
   </div>
 
   <script>
@@ -576,6 +643,10 @@
     const ftToggle = document.getElementById('ftToggle');
     const textViewer = document.getElementById('textViewer');
     const textContent = document.getElementById('textContent');
+    const termPanel = document.getElementById('termPanel');
+    const termFrame = document.getElementById('termFrame');
+    const termToggleBtn = document.getElementById('termToggleBtn');
+    const termCloseBtn = document.getElementById('termCloseBtn');
     const WORKSPACE = '/home/bhaskar/WSL-project';
 
     let currentUrl = '';
@@ -749,6 +820,17 @@
       var hidden = fileTree.classList.toggle('hidden');
       ftToggle.textContent = hidden ? '📂' : '📁';
     });
+
+    // Terminal toggle
+    function toggleTerminal() {
+      var open = termPanel.classList.toggle('open');
+      termToggleBtn.classList.toggle('active-term', open);
+      if (open && !termFrame.src) {
+        termFrame.src = 'http://100.79.46.97:8081/terminal';
+      }
+    }
+    termToggleBtn.addEventListener('click', toggleTerminal);
+    termCloseBtn.addEventListener('click', toggleTerminal);
 
     // Top bar buttons
     hamburgerBtn.addEventListener('click', openDrawer);
