@@ -644,6 +644,11 @@
     // ── File tree (Preview mode) ──
     async function loadDir(path) {
       fileTreeContent.innerHTML = '<div class="tree-item" style="color:var(--fg2);font-size:12px;padding:10px">Loading...</div>';
+      var host = window.location.hostname;
+      if (host !== '100.79.46.97' && host !== 'localhost' && host !== '127.0.0.1') {
+        fileTreeContent.innerHTML = '<div class="tree-item" style="color:var(--fg2);font-size:12px;padding:10px">🔒 File tree available on local network only</div>';
+        return;
+      }
       try {
         var resp = await fetch('/api/browse?path=' + encodeURIComponent(path));
         var data = await resp.json();
@@ -797,6 +802,14 @@
         urlBar.value = url;
         errorOverlay.classList.remove('active');
         frame.src = url;
+        var nav = document.querySelector('.nav-bar');
+        nav.classList.add('url-mode');
+        fileTree.classList.add('visible');
+        fileTree.classList.remove('hidden');
+        ftToggle.textContent = '📁';
+        frame.style.display = '';
+        textViewer.classList.remove('active');
+        loadDir(WORKSPACE);
       } else {
         window.open(url, '_blank');
       }
