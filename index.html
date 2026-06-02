@@ -293,6 +293,16 @@
       padding: 2px 6px;
       border-radius: 4px;
     }
+    .ft-toggle {
+      display: none;
+      font-size: 16px;
+      width: 30px;
+      height: 28px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+    }
+    .iframe-view .nav-bar.url-mode .ft-toggle { display: flex; }
     .iframe-view iframe {
       flex: 1;
       width: 100%;
@@ -313,6 +323,7 @@
       flex-shrink: 0;
     }
     .file-tree.visible { display: flex; }
+    .file-tree.hidden { display: none; }
     .file-tree-header {
       padding: 8px 10px;
       font-size: 11px;
@@ -513,6 +524,7 @@
     <div class="iframe-view" id="iframeView">
       <div class="nav-bar">
         <div class="page-title" id="pageTitle">Service</div>
+        <button class="tb-btn ft-toggle" id="ftToggle" title="Show/hide file tree">📁</button>
         <input class="url-bar" id="urlBar" type="text" placeholder="Enter URL or file path..." spellcheck="false">
         <button class="tb-btn go-btn" id="goBtn" title="Go">➤</button>
         <div class="page-indicator" id="pageIndicator">:port</div>
@@ -560,6 +572,8 @@
     const urlBar = document.getElementById('urlBar');
     const goBtn = document.getElementById('goBtn');
     const fileTreeContent = document.getElementById('fileTreeContent');
+    const fileTree = document.getElementById('fileTree');
+    const ftToggle = document.getElementById('ftToggle');
     const textViewer = document.getElementById('textViewer');
     const textContent = document.getElementById('textContent');
     const WORKSPACE = '/home/bhaskar/WSL-project';
@@ -590,7 +604,9 @@
       var nav = document.querySelector('.nav-bar');
       if (label === 'Preview') {
         nav.classList.add('url-mode');
-        document.getElementById('fileTree').classList.add('visible');
+        fileTree.classList.add('visible');
+        fileTree.classList.remove('hidden');
+        ftToggle.textContent = '📁';
         frame.style.display = '';
         textViewer.classList.remove('active');
         loadDir(WORKSPACE);
@@ -721,6 +737,12 @@
         if (port === 'ext') { window.open(url, '_blank'); closeDrawer(); return; }
         loadService(url, label, port);
       });
+    });
+
+    // File tree toggle (Preview mode)
+    ftToggle.addEventListener('click', () => {
+      var hidden = fileTree.classList.toggle('hidden');
+      ftToggle.textContent = hidden ? '📂' : '📁';
     });
 
     // Top bar buttons
